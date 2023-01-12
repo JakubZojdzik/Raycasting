@@ -9,7 +9,6 @@
 #include <termios.h>
 #include <pthread.h>
 
-
 // ----------------------  CONTROLS  ----------------------
 const int MAP_WIDTH = 8;
 const int MAP_HEIGHT = 8;
@@ -42,17 +41,6 @@ struct termios oldSettings, newSettings;
 {'$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', '\'', '.'} // 68 chars
 {'@', '%', '=', ':', '.'} // 5 chars
 {'█', '▓', '▒', '░'} // 4 chars
-
-
-    {1, 1, 1, 1, X, X, X, 1},
-    {1, 0, 0, G, 0, 0, 0, X},
-    {1, 0, 0, 0, 0, 0, 0, X},
-    {1, 0, 0, 0, 0, 0, 0, X},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 1, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1}
-
 */
 char charset[] = {'@', '%', '=', ':', '.'};
 const int COLORS = 5;
@@ -240,19 +228,15 @@ void *game_loop(void *vargp)
                 }
                 if(board[mapX][mapY]) wall = 1;
             }
-            // std::cerr << "zobaczylem (" << mapX << ", " << mapY << ")\n";
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
-            // std::cerr << "D: " << dist << '\n';
             int h = SCREEN_HEIGHT / round(dist);
-            // int color = COLORS - ((dist-1) * COLORS) / (SCREEN_WIDTH + SCREEN_HEIGHT);
             int color = COLORS - ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
             color = std::min(color, COLORS-1);
             color = std::max(color, 0);
             int line_beg = std::max(0, SCREEN_HEIGHT / 2 - h / 2);
             int line_end = std::min(SCREEN_HEIGHT / 2 + h / 2, SCREEN_HEIGHT-1);
-            // std::cerr << "zapisuje od " << line_beg << " do " << line_end << " kolor " << color << '\n';
             if(line+1 >= SCREEN_WIDTH) break;
             for(int i = line_beg; i <= line_end; i++)
             {
@@ -261,8 +245,6 @@ void *game_loop(void *vargp)
             }
             line += 2;
         }
-        // std::cerr << "line = " << line << '\n';
-        // break;
         draw();
 
         for(int y = 0; y < SCREEN_HEIGHT; y++)
@@ -272,36 +254,17 @@ void *game_loop(void *vargp)
                 screen[x][y] = 0;
             }
         }
-
-        // direction += .1;
-        // if(direction >= 360.0) direction -= 360.0;
     }
 
     pthread_exit((void*) vargp);
 }
 
-void *tmp(void *arg)
-{
-    std::cout << "test\n";
-    pthread_exit(NULL);
-}
-
 int main()
 {
-    // std::cin.tie(0); std::cout.tie(0);
-    // std::ios_base::sync_with_stdio(0);
-
-    // int qwer;
-    // pthread_t test;
-    // qwer = pthread_create(&test, NULL, &tmp, NULL);
-    // std::cout << qwer << '\n';
-    // return 0;
-
     setup();
     pthread_t display, controls;
     pthread_create(&display, NULL, game_loop, NULL);
     pthread_create(&controls, NULL, listen, NULL);
     pthread_join(display, NULL);
-    // pthread_create(&controls, NULL, listen, NULL);
 }
 
