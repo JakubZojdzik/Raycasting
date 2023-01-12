@@ -49,9 +49,9 @@ struct termios oldSettings, newSettings;
 {'@', '%', '=', ':', '.'} // 5 chars
 {'█', '▓', '▒', '░'} // 4 chars
 */
-char charset[] = {'@', '%', '=', ':', '.'};
-const int COLORS = 5;
-char ceilC = ' ', floorC = ' ';
+char charset[] = {'@', '%', '#', '*', ':', '=', '+', '-', '.'};
+const int COLORS = 9;
+char ceilC = '`', floorC = '`';
 
 double to_rad(double degree)
 {
@@ -180,9 +180,9 @@ void draw()
         for(int x = 0; x < MAP_WIDTH; x++)
         {
             if(y == long(posY) && x == long(posX))
-                std::cout << '#';
+                std::cout << '^';
             else if(board[x][y])
-                std::cout << board[x][y];
+                std::cout << '#';
             else
                 std::cout << '.';
         }
