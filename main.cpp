@@ -28,7 +28,7 @@ const int SCREEN_HEIGHT = 30;
 double posX = 1, posY = 3;
 double direction = 90;
 const double MOVEMENT_SPEED = .1;
-const double ROTATION_SPEED = .3;
+const double ROTATION_SPEED = 1.0;
 const double ANGLE_INCREMENT = 1;
 // --------------------------------------------------------
 
@@ -63,6 +63,12 @@ double to_rad(double degree)
     return (degree * (pi / 180));
 }
 
+void normalize_angle(double &angle)
+{
+    if(angle < 0) angle += 360;
+    if(angle >= 360) angle -= 360;
+}
+
 void *listen(void *vargp)
 {
     while ( 1 )
@@ -82,34 +88,66 @@ void *listen(void *vargp)
         {
             char c;
             read( fileno( stdin ), &c, 1 );
+            double stepDir = direction;
+            normalize_angle(stepDir);
+            double incX, incY;
             switch (c)
             {
             case 'w':
-                posY += MOVEMENT_SPEED;
+                normalize_angle(stepDir);
+                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                if(!board[long(posX+incX)][long(posY+incY)])
+                {
+                    posX += incX;
+                    posY += incY;
+                }
                 break;
 
             case 's':
-                posY -= MOVEMENT_SPEED;
+                stepDir += 180;
+                normalize_angle(stepDir);
+                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                if(!board[long(posX+incX)][long(posY+incY)])
+                {
+                    posX += incX;
+                    posY += incY;
+                }
                 break;
 
             case 'd':
-                posX += MOVEMENT_SPEED;
+                stepDir -= 90;
+                normalize_angle(stepDir);
+                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                if(!board[long(posX+incX)][long(posY+incY)])
+                {
+                    posX += incX;
+                    posY += incY;
+                }
                 break;
 
             case 'a':
-                posX += MOVEMENT_SPEED;
+                stepDir += 90;
+                normalize_angle(stepDir);
+                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                if(!board[long(posX+incX)][long(posY+incY)])
+                {
+                    posX += incX;
+                    posY += incY;
+                }
                 break;
 
             case 'l':
                 direction += ROTATION_SPEED;
-                if(direction < 0) direction += 360;
-                if(direction >= 360) direction -= 360;
+                normalize_angle(direction);
                 break;
 
             case 'k':
                 direction -= ROTATION_SPEED;
-                if(direction < 0) direction += 360;
-                if(direction >= 360) direction -= 360;
+                normalize_angle(direction);
                 break;
             default:
                 break;
@@ -154,8 +192,7 @@ void *game_loop(void *vargp)
         for(double degitr = curr_dir - FOV/2; degitr <= curr_dir + FOV/2; degitr += ANGLE_INCREMENT)
         {
             double deg = degitr;
-            if(deg < 0) deg += 360;
-            if(deg >= 360) deg -= 360;
+            normalize_angle(deg);
             std::cerr << "deg = " << deg << '\n';
             double currX, currY, fullX, fullY, syf;
             currX = abs((1 - modf(curr_posX, &syf)) / cos(to_rad(deg)));
