@@ -32,34 +32,21 @@ double posX = 2.5, posY = 2.5;
 double direction = 90;
 const double MOVEMENT_SPEED = .4;
 const double ROTATION_SPEED = 4.0;
-// --------------------------------------------------------
-
-const double FOV = SCREEN_WIDTH / 2;
-int screen[SCREEN_WIDTH][SCREEN_HEIGHT];
-struct termios oldSettings, newSettings;
-
 /*
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-
-{'@', '%', '#', '*', '+', '=', '-', ':', '.'} // 9 chars
+{'@', '%', '#', '*', ':', '=', '+', '-', '.'} // 9 chars
 {'$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', '\'', '.'} // 68 chars
 {'@', '%', '=', ':', '.'} // 5 chars
 {'█', '▓', '▒', '░'} // 4 chars
 */
 char charset[] = {'@', '%', '#', '*', ':', '=', '+', '-', '.'};
 const int COLORS = 9;
-char ceilC = '`', floorC = '`';
+char ceil_color = '`', floor_color = '`';
+// --------------------------------------------------------
+
+const double FOV = SCREEN_WIDTH / 2;
+int screen[SCREEN_WIDTH][SCREEN_HEIGHT];
+struct termios oldSettings, newSettings;
+
 
 inline double to_rad(double degree)
 {
@@ -168,11 +155,11 @@ void draw()
         {
             if(screen[x][y] == -1)
             {
-                std::cout << ceilC;
+                std::cout << ceil_color;
             }
             else if(screen[x][y] == -2)
             {
-                std::cout << floorC;
+                std::cout << floor_color;
             }
             else
             {
