@@ -120,6 +120,19 @@ void listen()
     tcsetattr( fileno( stdin ), TCSANOW, &oldSettings );
 }
 
+void draw()
+{
+    cout << "\033[0;0H";
+    for(int y = 0; y < SCREEN_HEIGHT; y++)
+    {
+        for(int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            cout << charset[screen[x][y]];
+        }
+        cout << "\n";
+    }
+}
+
 void setup()
 {
     tcgetattr( fileno( stdin ), &oldSettings );
@@ -135,9 +148,10 @@ void game_loop()
 {
     while(1)
     {
-        int itr = 0;
-        for(double deg = direction - FOV/2; deg <= direction + FOV/2; deg += ANGLE_INCREMENT)
+        int line = 0;
+        for(double degitr = direction - FOV/2; degitr <= direction + FOV/2; degitr += ANGLE_INCREMENT)
         {
+            double deg = degitr;
             if(deg < 0) deg += 360;
             if(deg >= 360) deg -= 360;
             cerr << "deg = " << deg << '\n';
@@ -166,8 +180,8 @@ void game_loop()
             else stepX = 1;
             if(deg >= 0 && deg < 180) stepY = 1;
             else stepY = -1;
-            // cerr << "currX: " << currX << ", fullX: " << fullX << '\n';
-            // cerr << "currY: " << currY << ", fullY: " << fullY << '\n';
+            cerr << "currX: " << currX << ", fullX: " << fullX << '\n';
+            cerr << "currY: " << currY << ", fullY: " << fullY << '\n';
             int mapX = long(posX), mapY = long(posY);
             int side;
             bool wall = 0;
@@ -191,7 +205,7 @@ void game_loop()
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
-            cerr << "D: " << dist << '\n';
+            // cerr << "D: " << dist << '\n';
             int h = SCREEN_HEIGHT / round(dist);
             // int color = COLORS - ((dist-1) * COLORS) / (SCREEN_WIDTH + SCREEN_HEIGHT);
             int color = COLORS - ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
@@ -200,26 +214,17 @@ void game_loop()
             int line_beg = max(0, SCREEN_HEIGHT / 2 - h / 2);
             int line_end = min(SCREEN_HEIGHT / 2 + h / 2, SCREEN_HEIGHT-1);
             // cerr << "zapisuje od " << line_beg << " do " << line_end << " kolor " << color << '\n';
+            if(line+1 >= SCREEN_WIDTH) break;
             for(int i = line_beg; i <= line_end; i++)
             {
-                screen[itr][i] = color;
-                screen[itr+1][i] = color;
+                screen[line][i] = color;
+                screen[line+1][i] = color;
             }
-            itr += 2;
+            line += 2;
         }
-        cerr << "itr = " << itr << '\n';
+        // cerr << "line = " << line << '\n';
         // break;
-
-        cout << "\033[0;0H";
-        // sleep(.6);
-        for(int y = 0; y < SCREEN_HEIGHT; y++)
-        {
-            for(int x = 0; x < SCREEN_WIDTH; x++)
-            {
-                cout << charset[screen[x][y]];
-            }
-            cout << "\n";
-        }
+        draw();
 
         for(int y = 0; y < SCREEN_HEIGHT; y++)
         {
@@ -230,7 +235,7 @@ void game_loop()
         }
 
         direction += .1;
-        if(direction >= 360) direction -= 360;
+        if(direction >= 360.0) direction -= 360.0;
     }
 }
 
