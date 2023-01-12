@@ -14,21 +14,21 @@ const int MAP_WIDTH = 8;
 const int MAP_HEIGHT = 8;
 int board[MAP_WIDTH][MAP_HEIGHT] = {
     {1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 1, 0, 0, 1},
+    {1, 0, 0, 0, 1, 0, 0, 1},
     {1, 0, 0, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1},
     {1, 1, 1, 1, 1, 1, 1, 1}
 };
-const int SCREEN_WIDTH = 120;
-const int SCREEN_HEIGHT = 30;
+const int SCREEN_WIDTH = 220;
+const int SCREEN_HEIGHT = 50;
 double posX = 1, posY = 3;
 double direction = 90;
 const double MOVEMENT_SPEED = .1;
-const double ROTATION_SPEED = 1.0;
-const double ANGLE_INCREMENT = 1;
+const double ROTATION_SPEED = 4.0;
+const double ANGLE_INCREMENT = 1.0;
 // --------------------------------------------------------
 
 const double FOV = SCREEN_WIDTH / 2;
@@ -44,6 +44,7 @@ struct termios oldSettings, newSettings;
 */
 char charset[] = {'@', '%', '=', ':', '.'};
 const int COLORS = 5;
+char ceilC = '_', floorC = '_';
 
 double to_rad(double degree)
 {
@@ -53,8 +54,8 @@ double to_rad(double degree)
 
 void normalize_angle(double &angle)
 {
-    if(angle < 0) angle += 360;
-    if(angle >= 360) angle -= 360;
+    while(angle < 0) angle += 360.0;
+    while(angle >= 360) angle -= 360.0;
 }
 
 void *listen(void *vargp)
@@ -77,7 +78,6 @@ void *listen(void *vargp)
             char c;
             read( fileno( stdin ), &c, 1 );
             double stepDir = direction;
-            normalize_angle(stepDir);
             double incX, incY;
             switch (c)
             {
@@ -89,6 +89,7 @@ void *listen(void *vargp)
                 {
                     posX += incX;
                     posY += incY;
+                    break;
                 }
                 break;
 
@@ -101,22 +102,11 @@ void *listen(void *vargp)
                 {
                     posX += incX;
                     posY += incY;
+                    break;
                 }
                 break;
 
             case 'd':
-                stepDir -= 90;
-                normalize_angle(stepDir);
-                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
-                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
-                if(!board[long(posX+incX)][long(posY+incY)])
-                {
-                    posX += incX;
-                    posY += incY;
-                }
-                break;
-
-            case 'a':
                 stepDir += 90;
                 normalize_angle(stepDir);
                 incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
@@ -125,6 +115,20 @@ void *listen(void *vargp)
                 {
                     posX += incX;
                     posY += incY;
+                    break;
+                }
+                break;
+
+            case 'a':
+                stepDir -= 90;
+                normalize_angle(stepDir);
+                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                if(!board[long(posX+incX)][long(posY+incY)])
+                {
+                    posX += incX;
+                    posY += incY;
+                    break;
                 }
                 break;
 
@@ -153,10 +157,22 @@ void draw()
     {
         for(int x = 0; x < SCREEN_WIDTH; x++)
         {
-            std::cout << charset[screen[x][y]];
+            if(screen[x][y] == -1)
+            {
+                std::cout << ceilC;
+            }
+            else if(screen[x][y] == -2)
+            {
+                std::cout << floorC;
+            }
+            else
+            {
+                std::cout << charset[screen[x][y]];
+            }
         }
         std::cout << "\n";
     }
+    std::cout << "(" << posX << ", " << posY << "), " << direction << "      \n";
 }
 
 void setup()
@@ -181,20 +197,19 @@ void *game_loop(void *vargp)
         {
             double deg = degitr;
             normalize_angle(deg);
-            std::cerr << "deg = " << deg << '\n';
             double currX, currY, fullX, fullY, syf;
             currX = abs((1 - modf(curr_posX, &syf)) / cos(to_rad(deg)));
             currY = abs((1 - modf(curr_posY, &syf)) / sin(to_rad(deg)));
             fullX = abs(1 / cos(to_rad(deg)));
             fullY = abs(1 / sin(to_rad(deg)));
-            if(curr_dir == 0 || curr_dir == 180)
+            if(deg == 0 || deg == 180)
             {
                 currX = abs(1 - modf(curr_posX, &syf));
                 fullX = 1;
                 currY = 1e17;
                 fullY = 1e17;
             }
-            if(curr_dir == 90 || curr_dir == 270)
+            if(deg == 90 || deg == 270)
             {
                 currX = 1e17;
                 fullX = 1e17;
@@ -207,8 +222,6 @@ void *game_loop(void *vargp)
             else stepX = 1;
             if(deg >= 0 && deg < 180) stepY = 1;
             else stepY = -1;
-            std::cerr << "currX: " << currX << ", fullX: " << fullX << '\n';
-            std::cerr << "currY: " << currY << ", fullY: " << fullY << '\n';
             int mapX = long(curr_posX), mapY = long(curr_posY);
             int side;
             bool wall = 0;
@@ -231,8 +244,8 @@ void *game_loop(void *vargp)
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
-            int h = SCREEN_HEIGHT / round(dist);
-            int color = COLORS - ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
+            int h = SCREEN_HEIGHT / dist;
+            int color = ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
             color = std::min(color, COLORS-1);
             color = std::max(color, 0);
             int line_beg = std::max(0, SCREEN_HEIGHT / 2 - h / 2);
@@ -251,7 +264,8 @@ void *game_loop(void *vargp)
         {
             for(int x = 0; x < SCREEN_WIDTH; x++)
             {
-                screen[x][y] = 0;
+                screen[x][y] = -1;
+                if(y >= SCREEN_HEIGHT/2) screen[x][y] = -2;
             }
         }
     }
