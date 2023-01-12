@@ -61,10 +61,9 @@ char charset[] = {'@', '%', '#', '*', ':', '=', '+', '-', '.'};
 const int COLORS = 9;
 char ceilC = '`', floorC = '`';
 
-double to_rad(double degree)
+inline double to_rad(double degree)
 {
-    double pi = 3.14159265359;
-    return (degree * (pi / 180));
+    return (degree * (3.14159265359 / 180));
 }
 
 void normalize_angle(double &angle)
