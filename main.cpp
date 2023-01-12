@@ -29,6 +29,7 @@ double posX = 1, posY = 3;
 double direction = 90;
 const double MOVEMENT_SPEED = .3;
 const double ROTATION_SPEED = .3;
+const double ANGLE_INCREMENT = 1;
 // --------------------------------------------------------
 
 const double FOV = SCREEN_WIDTH / 2;
@@ -135,7 +136,7 @@ void game_loop()
     while(1)
     {
         int itr = 0;
-        for(double deg = direction - FOV/2; deg <= direction + FOV/2; deg++)
+        for(double deg = direction - FOV/2; deg <= direction + FOV/2; deg += ANGLE_INCREMENT)
         {
             if(deg < 0) deg += 360;
             if(deg >= 360) deg -= 360;
@@ -145,14 +146,28 @@ void game_loop()
             currY = abs((1 - modf(posY, &syf)) / sin(to_rad(deg)));
             fullX = abs(1 / cos(to_rad(deg)));
             fullY = abs(1 / sin(to_rad(deg)));
+            if(direction == 0 || direction == 180)
+            {
+                currX = abs(1 - modf(posX, &syf));
+                fullX = 1;
+                currY = 1e17;
+                fullY = 1e17;
+            }
+            if(direction == 90 || direction == 270)
+            {
+                currX = 1e17;
+                fullX = 1e17;
+                currY = abs(1 - modf(posY, &syf));
+                fullY = 1;
+            }
 
             int stepX, stepY;
             if(deg >= 90 && deg < 270) stepX = -1;
             else stepX = 1;
             if(deg >= 0 && deg < 180) stepY = 1;
             else stepY = -1;
-            cerr << "currX: " << currX << ", fullX: " << fullX << '\n';
-            cerr << "currY: " << currY << ", fullY: " << fullY << '\n';
+            // cerr << "currX: " << currX << ", fullX: " << fullX << '\n';
+            // cerr << "currY: " << currY << ", fullY: " << fullY << '\n';
             int mapX = long(posX), mapY = long(posY);
             int side;
             bool wall = 0;
@@ -172,7 +187,7 @@ void game_loop()
                 }
                 if(board[mapX][mapY]) wall = 1;
             }
-            cerr << "zobaczylem (" << mapX << ", " << mapY << ")\n";
+            // cerr << "zobaczylem (" << mapX << ", " << mapY << ")\n";
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
@@ -182,8 +197,8 @@ void game_loop()
             int color = COLORS - ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
             color = min(color, COLORS-1);
             color = max(color, 0);
-            int line_beg = SCREEN_HEIGHT / 2 - h / 2;
-            int line_end = SCREEN_HEIGHT / 2 + h / 2;
+            int line_beg = max(0, SCREEN_HEIGHT / 2 - h / 2);
+            int line_end = min(SCREEN_HEIGHT / 2 + h / 2, SCREEN_HEIGHT-1);
             // cerr << "zapisuje od " << line_beg << " do " << line_end << " kolor " << color << '\n';
             for(int i = line_beg; i <= line_end; i++)
             {
@@ -196,7 +211,7 @@ void game_loop()
         // break;
 
         cout << "\033[0;0H";
-        sleep(0.3);
+        // sleep(.6);
         for(int y = 0; y < SCREEN_HEIGHT; y++)
         {
             for(int x = 0; x < SCREEN_WIDTH; x++)
