@@ -1,7 +1,16 @@
-#include <bits/stdc++.h>
+#include <iostream>
 #include <cmath>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 using namespace std;
 
+
+// ----------------------  CONTROLS  ----------------------
 const int MAP_WIDTH = 8;
 const int MAP_HEIGHT = 8;
 int board[MAP_WIDTH][MAP_HEIGHT] = {
@@ -16,17 +25,36 @@ int board[MAP_WIDTH][MAP_HEIGHT] = {
 };
 const int SCREEN_WIDTH = 120;
 const int SCREEN_HEIGHT = 30;
-int screen[SCREEN_WIDTH][SCREEN_HEIGHT];
-double posX = 3, posY = 3;
+double posX = 1, posY = 3;
 double direction = 90;
+const double MOVEMENT_SPEED = .3;
+const double ROTATION_SPEED = .3;
+// --------------------------------------------------------
+
 const double FOV = SCREEN_WIDTH / 2;
+int screen[SCREEN_WIDTH][SCREEN_HEIGHT];
+struct termios oldSettings, newSettings;
+
 
 /*
 {'@', '%', '#', '*', '+', '=', '-', ':', '.'} // 9 chars
-$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'.
+{'$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', '\'', '.'} // 68 chars
+{'@', '%', '=', ':', '.'} // 5 chars
+{'█', '▓', '▒', '░'} // 4 chars
+
+
+    {1, 1, 1, 1, X, X, X, 1},
+    {1, 0, 0, G, 0, 0, 0, X},
+    {1, 0, 0, 0, 0, 0, 0, X},
+    {1, 0, 0, 0, 0, 0, 0, X},
+    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 1, 1, 0, 1},
+    {1, 0, 0, 0, 0, 1, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1}
+
 */
-char charset[] = {'@', '%', '#', '*', '+', '=', '-', ':', '.'};
-const int COLORS = 9;
+char charset[] = {'@', '%', '=', ':', '.'};
+const int COLORS = 5;
 
 double to_rad(double degree)
 {
@@ -34,8 +62,70 @@ double to_rad(double degree)
     return (degree * (pi / 180));
 }
 
+void listen()
+{
+    while ( 1 )
+    {
+        fd_set set;
+        struct timeval tv;
+
+        tv.tv_sec = 10;
+        tv.tv_usec = 0;
+
+        FD_ZERO( &set );
+        FD_SET( fileno( stdin ), &set );
+
+        int res = select( fileno( stdin )+1, &set, NULL, NULL, &tv );
+
+        if( res > 0 )
+        {
+            char c;
+            read( fileno( stdin ), &c, 1 );
+            switch (c)
+            {
+            case 'w':
+                posY += MOVEMENT_SPEED;
+                break;
+
+            case 's':
+                posY -= MOVEMENT_SPEED;
+                break;
+
+            case 'd':
+                posX += MOVEMENT_SPEED;
+                break;
+
+            case 'a':
+                posX += MOVEMENT_SPEED;
+                break;
+
+            case 'l':
+                direction += ROTATION_SPEED;
+                if(direction < 0) direction += 360;
+                if(direction >= 360) direction -= 360;
+                break;
+
+            case 'k':
+                direction -= ROTATION_SPEED;
+                if(direction < 0) direction += 360;
+                if(direction >= 360) direction -= 360;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    tcsetattr( fileno( stdin ), TCSANOW, &oldSettings );
+}
+
 void setup()
 {
+    tcgetattr( fileno( stdin ), &oldSettings );
+    newSettings = oldSettings;
+    newSettings.c_lflag &= (~ICANON & ~ECHO);
+    tcsetattr( fileno( stdin ), TCSANOW, &newSettings );
+
     cout << "\x1B[2J\x1B[H";
     cout << "\033[0;0H";
 }
@@ -48,12 +138,13 @@ void game_loop()
         for(double deg = direction - FOV/2; deg <= direction + FOV/2; deg++)
         {
             if(deg < 0) deg += 360;
+            if(deg >= 360) deg -= 360;
             cerr << "deg = " << deg << '\n';
             double currX, currY, fullX, fullY, syf;
-            currX = (1 - modf(posX, &syf)) / cos(to_rad(deg));
-            currY = (1 - modf(posY, &syf)) / sin(to_rad(deg));
-            fullX = 1 / cos(to_rad(deg));
-            fullY = 1 / sin(to_rad(deg));
+            currX = abs((1 - modf(posX, &syf)) / cos(to_rad(deg)));
+            currY = abs((1 - modf(posY, &syf)) / sin(to_rad(deg)));
+            fullX = abs(1 / cos(to_rad(deg)));
+            fullY = abs(1 / sin(to_rad(deg)));
 
             int stepX, stepY;
             if(deg >= 90 && deg < 270) stepX = -1;
@@ -81,14 +172,14 @@ void game_loop()
                 }
                 if(board[mapX][mapY]) wall = 1;
             }
+            cerr << "zobaczylem (" << mapX << ", " << mapY << ")\n";
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
             cerr << "D: " << dist << '\n';
-
             int h = SCREEN_HEIGHT / round(dist);
-            // int color = ((dist-1) * COLORS) / (SCREEN_WIDTH + SCREEN_HEIGHT);
-            int color = COLORS - ((dist-1) * COLORS) / (SCREEN_WIDTH + SCREEN_HEIGHT);
+            // int color = COLORS - ((dist-1) * COLORS) / (SCREEN_WIDTH + SCREEN_HEIGHT);
+            int color = COLORS - ((dist - 1) * COLORS) / (MAP_WIDTH + MAP_HEIGHT);
             color = min(color, COLORS-1);
             color = max(color, 0);
             int line_beg = SCREEN_HEIGHT / 2 - h / 2;
@@ -102,9 +193,10 @@ void game_loop()
             itr += 2;
         }
         cerr << "itr = " << itr << '\n';
+        // break;
 
         cout << "\033[0;0H";
-        sleep(0.1);
+        sleep(0.3);
         for(int y = 0; y < SCREEN_HEIGHT; y++)
         {
             for(int x = 0; x < SCREEN_WIDTH; x++)
@@ -113,6 +205,17 @@ void game_loop()
             }
             cout << "\n";
         }
+
+        for(int y = 0; y < SCREEN_HEIGHT; y++)
+        {
+            for(int x = 0; x < SCREEN_WIDTH; x++)
+            {
+                screen[x][y] = 0;
+            }
+        }
+
+        direction += .1;
+        if(direction >= 360) direction -= 360;
     }
 }
 
