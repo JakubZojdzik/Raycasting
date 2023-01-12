@@ -10,23 +10,29 @@
 #include <pthread.h>
 
 // ----------------------  CONTROLS  ----------------------
-const int MAP_WIDTH = 8;
-const int MAP_HEIGHT = 8;
+const int MAP_WIDTH =14;
+const int MAP_HEIGHT = 14;
 int board[MAP_WIDTH][MAP_HEIGHT] = {
-    {1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 1, 0, 0, 1},
-    {1, 0, 0, 0, 1, 0, 0, 1},
-    {1, 0, 0, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1}
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 };
 const int SCREEN_WIDTH = 220;
 const int SCREEN_HEIGHT = 50;
 double posX = 1, posY = 3;
 double direction = 90;
-const double MOVEMENT_SPEED = .1;
+const double MOVEMENT_SPEED = 1;
 const double ROTATION_SPEED = 4.0;
 const double ANGLE_INCREMENT = 1.0;
 // --------------------------------------------------------
@@ -37,6 +43,21 @@ struct termios oldSettings, newSettings;
 
 
 /*
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+
 {'@', '%', '#', '*', '+', '=', '-', ':', '.'} // 9 chars
 {'$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', '\'', '.'} // 68 chars
 {'@', '%', '=', ':', '.'} // 5 chars
@@ -83,52 +104,48 @@ void *listen(void *vargp)
             {
             case 'w':
                 normalize_angle(stepDir);
-                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
-                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incX = cos(to_rad(stepDir));
+                incY = sin(to_rad(stepDir));
                 if(!board[long(posX+incX)][long(posY+incY)])
                 {
-                    posX += incX;
-                    posY += incY;
-                    break;
+                    posX += incX * MOVEMENT_SPEED;
+                    posY += incY * MOVEMENT_SPEED;
                 }
                 break;
 
             case 's':
                 stepDir += 180;
                 normalize_angle(stepDir);
-                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
-                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incX = cos(to_rad(stepDir));
+                incY = sin(to_rad(stepDir));
                 if(!board[long(posX+incX)][long(posY+incY)])
                 {
-                    posX += incX;
-                    posY += incY;
-                    break;
+                    posX += incX * MOVEMENT_SPEED;
+                    posY += incY * MOVEMENT_SPEED;
                 }
                 break;
 
             case 'd':
                 stepDir += 90;
                 normalize_angle(stepDir);
-                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
-                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incX = cos(to_rad(stepDir));
+                incY = sin(to_rad(stepDir));
                 if(!board[long(posX+incX)][long(posY+incY)])
                 {
-                    posX += incX;
-                    posY += incY;
-                    break;
+                    posX += incX * MOVEMENT_SPEED;
+                    posY += incY * MOVEMENT_SPEED;
                 }
                 break;
 
             case 'a':
                 stepDir -= 90;
                 normalize_angle(stepDir);
-                incX = cos(to_rad(stepDir)) * MOVEMENT_SPEED;
-                incY = sin(to_rad(stepDir)) * MOVEMENT_SPEED;
+                incX = cos(to_rad(stepDir));
+                incY = sin(to_rad(stepDir));
                 if(!board[long(posX+incX)][long(posY+incY)])
                 {
-                    posX += incX;
-                    posY += incY;
-                    break;
+                    posX += incX * MOVEMENT_SPEED;
+                    posY += incY * MOVEMENT_SPEED;
                 }
                 break;
 
@@ -202,20 +219,20 @@ void *game_loop(void *vargp)
             currY = abs((1 - modf(curr_posY, &syf)) / sin(to_rad(deg)));
             fullX = abs(1 / cos(to_rad(deg)));
             fullY = abs(1 / sin(to_rad(deg)));
-            if(deg == 0 || deg == 180)
-            {
-                currX = abs(1 - modf(curr_posX, &syf));
-                fullX = 1;
-                currY = 1e17;
-                fullY = 1e17;
-            }
-            if(deg == 90 || deg == 270)
-            {
-                currX = 1e17;
-                fullX = 1e17;
-                currY = abs(1 - modf(curr_posY, &syf));
-                fullY = 1;
-            }
+            // if(deg == 0 || deg == 180)
+            // {
+            //     currX = abs(1 - modf(curr_posX, &syf));
+            //     fullX = 1;
+            //     currY = 1e17;
+            //     fullY = 1e17;
+            // }
+            // if(deg == 90 || deg == 270)
+            // {
+            //     currX = 1e17;
+            //     fullX = 1e17;
+            //     currY = abs(1 - modf(curr_posY, &syf));
+            //     fullY = 1;
+            // }
 
             int stepX, stepY;
             if(deg >= 90 && deg < 270) stepX = -1;
