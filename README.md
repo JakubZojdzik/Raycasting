@@ -2,9 +2,8 @@
 
 ## Effect
 
-<!-- -->                               |<!-- -->
-:-------------------------------------:|:-------------------------------------:
-![Program sample 1](gifs/sample1.gif)  |  ![Program sample 2](gifs/sample2.gif)
+![Program sample 1](gifs/sample1.gif)
+![Program sample 2](gifs/sample2.gif)
 
 ## Compilation
 
