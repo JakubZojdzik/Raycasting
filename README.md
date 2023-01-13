@@ -1,5 +1,11 @@
 # Raycasting in c++
 
+## Effect
+
+<!-- -->                               |<!-- -->
+:-------------------------------------:|:-------------------------------------:
+![Program sample 1](gifs/sample1.gif)  |  ![Program sample 2](gifs/sample2.gif)
+
 ## Compilation
 
 Code doesn't need any extra flags, using g++:
@@ -20,7 +26,8 @@ Parameters variables you can change starts in line 12.
 `MOVEMENT_SPEED` is step player will do every key press.  
 `ROTATION_SPEED` is step in degrees player will rotate every key press.  
 `charset` is set of colors used to drawing walls (from closer to farther). There are some example sets in comment underneath. `COLORS` has to be set on size of charset.  
-`ceil_color` and `floor_color` are characters of ceil and floor respectively.
+`ceil_color` and `floor_color` are characters of ceil and floor respectively.  
+Generally smaller fonts looks better. Diffrent fonts and terminal backgrounds need diffrent charsets to look good.  
 
 ## Controls
 
