@@ -22,6 +22,7 @@ Parameters variables you can change starts in line 12.
 `SCREEN_WIDTH` and `SCREEN_HEIGHT` are sizes of board on terminal. Both should be even numbers :)  
 `posX` and `posY` are starting coordinates of player. The coordinate system starts in left bottom corner of board with.  
 `direction` is angle of direction of player in degrees relative.  
+`FOV` is an field of view of player in degrees.  
 `MOVEMENT_SPEED` is step player will do every key press.  
 `ROTATION_SPEED` is step in degrees player will rotate every key press.  
 `charset` is set of colors used to drawing walls (from closer to farther). There are some example sets in comment underneath. `COLORS` has to be set on size of charset.  
