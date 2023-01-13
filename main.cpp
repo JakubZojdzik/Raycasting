@@ -277,10 +277,7 @@ void *game_loop(void *vargp)
             line++;
         }
         draw();
-
-        
     }
-
     pthread_exit((void*) vargp);
 }
 
