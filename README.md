@@ -19,7 +19,7 @@ Parameters variables you can change starts in line 12.
 `direction` is angle of direction of player in degrees relative.  
 `MOVEMENT_SPEED` is step player will do every key press.  
 `ROTATION_SPEED` is step in degrees player will rotate every key press.  
-`charset` is set of colors used to drawing walls (from closer to farther). `COLORS` has to be set on size of charset.  
+`charset` is set of colors used to drawing walls (from closer to farther). There are some example sets in comment underneath. `COLORS` has to be set on size of charset.  
 `ceil_color` and `floor_color` are characters of ceil and floor respectively.
 
 ## Controls

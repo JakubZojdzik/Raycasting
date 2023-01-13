@@ -30,8 +30,9 @@ const int SCREEN_WIDTH = 240;
 const int SCREEN_HEIGHT = 50;
 double posX = 2.5, posY = 2.5;
 double direction = 90;
-const double MOVEMENT_SPEED = .4;
-const double ROTATION_SPEED = 4.0;
+const double FOV = 60;
+const double MOVEMENT_SPEED = .15;
+const double ROTATION_SPEED = 5.0;
 /*
 {'@', '%', '#', '*', ':', '=', '+', '-', '.'} // 9 chars
 {'$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', '\'', '.'} // 68 chars
@@ -43,7 +44,6 @@ const int COLORS = 9;
 char ceil_color = '`', floor_color = '`';
 // --------------------------------------------------------
 
-const double FOV = SCREEN_WIDTH / 2;
 int screen[SCREEN_WIDTH][SCREEN_HEIGHT];
 struct termios oldSettings, newSettings;
 
@@ -182,6 +182,14 @@ void draw()
         }
         std::cout << '\n';
     }
+    for(int y = 0; y < SCREEN_HEIGHT; y++)
+    {
+        for(int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            screen[x][y] = -1;
+            if(y >= SCREEN_HEIGHT/2) screen[x][y] = -2;
+        }
+    }
 }
 
 void setup()
@@ -202,7 +210,7 @@ void *game_loop(void *vargp)
         int line = 0;
         double curr_dir = direction;
         double curr_posX = posX, curr_posY = posY;
-        for(double degitr = curr_dir + FOV/2; degitr >= curr_dir - FOV/2; degitr--)
+        for(double degitr = curr_dir + FOV/2; degitr >= curr_dir - FOV/2; degitr -= (FOV / SCREEN_WIDTH))
         {
             double deg = degitr;
             normalize_angle(deg);
@@ -253,7 +261,7 @@ void *game_loop(void *vargp)
             double dist;
             if(side == 0) dist = currX - fullX;
             else dist = currY - fullY;
-            // dist *= cos(to_rad(abs(deg-curr_dir)));
+            dist *= cos(to_rad(abs(deg-curr_dir)));
 
             int h = SCREEN_HEIGHT / dist;
             int color = COLORS - h * COLORS / SCREEN_HEIGHT;
@@ -261,24 +269,16 @@ void *game_loop(void *vargp)
             color = std::max(color, 0);
             int line_beg = std::max(0, SCREEN_HEIGHT / 2 - h / 2);
             int line_end = std::min(SCREEN_HEIGHT / 2 + h / 2, SCREEN_HEIGHT-1);
-            if(line+1 >= SCREEN_WIDTH) break;
+            if(line >= SCREEN_WIDTH) break;
             for(int i = line_beg; i <= line_end; i++)
             {
                 screen[line][i] = color;
-                screen[line+1][i] = color;
             }
-            line += 2;
+            line++;
         }
         draw();
 
-        for(int y = 0; y < SCREEN_HEIGHT; y++)
-        {
-            for(int x = 0; x < SCREEN_WIDTH; x++)
-            {
-                screen[x][y] = -1;
-                if(y >= SCREEN_HEIGHT/2) screen[x][y] = -2;
-            }
-        }
+        
     }
 
     pthread_exit((void*) vargp);
