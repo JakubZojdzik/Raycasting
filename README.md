@@ -19,7 +19,7 @@ Then just run executable. It probably works only with UNIX.
 
 Parameters variables you can change starts in line 12.  
 `MAP_WIDTH` and `MAP_HEIGHT` have to fit to size of board you created.  
-`SCREEN_WIDTH` and `SCREEN_HEIGHT` are sizes of board on terminal. Both should be even numbers :)  
+`SCREEN_WIDTH` and `SCREEN_HEIGHT` are sizes of board on terminal.  
 `posX` and `posY` are starting coordinates of player. The coordinate system starts in left bottom corner of board with.  
 `direction` is angle of direction of player in degrees relative.  
 `FOV` is an field of view of player in degrees.  
